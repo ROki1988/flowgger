@@ -13,6 +13,8 @@ coroutines = ["coio"]
 
 default = ["kafka"]
 
+kinesis = ["rusoto_core", "rusoto_kinesis"]
+
 [build-dependencies.capnpc]
 version = "*"
 optional = true
@@ -36,6 +38,14 @@ optional = true
 [dependencies.kafka]
 git = "https://github.com/spicavigo/kafka-rust"
 features = ["snappy", "gzip", "security"]
+optional = true
+
+[dependencies.rusoto_core]
+version = "0.35.0"
+optional = true
+
+[dependencies.rusoto_kinesis]
+version = "0.35.0"
 optional = true
 
 [dependencies.openssl]

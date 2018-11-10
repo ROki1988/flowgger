@@ -2,6 +2,8 @@ mod debug_output;
 #[cfg(feature = "kafka")]
 mod kafka_output;
 mod tls_output;
+#[cfg(feature = "kinesis")]
+mod kinesis_output;
 
 pub use self::debug_output::DebugOutput;
 #[cfg(feature = "kafka")]

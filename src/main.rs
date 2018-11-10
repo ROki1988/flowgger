@@ -9,6 +9,8 @@ extern crate kafka;
 extern crate openssl;
 extern crate rand;
 extern crate redis;
+extern crate rusoto_core;
+extern crate rusoto_kinesis;
 extern crate serde_json;
 extern crate toml;
 
