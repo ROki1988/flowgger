@@ -31,24 +31,50 @@ struct KinesisConfig{
 
 pub struct KinesisWorker {
     arx: Arc<Mutex<Receiver<Vec<u8>>>>,
-    merger: Option<Box<Merger + Send>>,
     config: KinesisConfig,
     client: KinesisClient,
-    queue: Vec<PutRecordsRequestEntry>,
+    queue: Vec<Vec<u8>>,
 }
 
 impl  KinesisWorker {
     fn new(
         arx: Arc<Mutex<Receiver<Vec<u8>>>>,
-        merger: Option<Box<Merger + Send>>,
         config: KinesisConfig,
     ) -> Self {
         Self {
             arx,
-            merger,
             config,
             client: KinesisClient::new(config.region.clone()),
             queue: Vec::with_capacity(config.send_max_size),
         }
+    }
+
+    fn run(&mut self) {
+        //TODO: make chennel
+        //TODO: make sender
+
+        loop {
+            let b = mdo! {
+                lock =<< self.arx.lock();
+                bytes =<< lock.recv();
+                ret ret(bytes)
+            };
+            self.queue.push(b);
+        }
+    }
+}
+
+impl Output for KinesisOutput {
+    fn start(&self, arx: Arc<Mutex<Receiver<Vec<u8>>>>, merger: Option<Box<Merger>>) {
+        if merger.is_some() {
+            let _ = writeln!(stderr(), "Output framing is ignored with the Kinesis output");
+        }
+
+        let arx = Arc::clone(&arx);
+        let config = self.config.clone();
+        thread::spawn(move || {
+            let mut worker = KinesisWorker::new(arx, config);
+            worker.run();        
+        });
     }
 }

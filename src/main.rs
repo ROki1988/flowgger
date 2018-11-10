@@ -6,6 +6,7 @@ extern crate coio;
 extern crate flate2;
 #[cfg(feature = "kafka")]
 extern crate kafka;
+#[macro_use] extern crate mdo;
 extern crate openssl;
 extern crate rand;
 extern crate redis;
