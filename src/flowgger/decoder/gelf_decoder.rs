@@ -3,7 +3,7 @@ use crate::flowgger::config::Config;
 use crate::flowgger::record::{Record, SDValue, StructuredData, SEVERITY_MAX};
 use crate::flowgger::utils;
 use serde_json::de;
-use serde_json::error::Error::Syntax;
+use serde_json::error::Error;
 use serde_json::error::ErrorCode;
 use serde_json::value::Value;
 
@@ -25,14 +25,13 @@ impl Decoder for GelfDecoder {
         let mut full_msg = None;
         let mut severity = None;
 
-        let obj = match de::from_str(line) {
-            x @ Ok(_) => x,
-            Err(Syntax(ErrorCode::InvalidUnicodeCodePoint, ..)) => {
-                de::from_str(&line.replace('\n', r"\n"))
+        let obj: Value = de::from_str(line).map_err(|e| 
+            if e.is_syntax() {
+                de::from_str::<Value>(line.replace('\n', r"\n").as_str())
+            } else {
+                Err(e)
             }
-            x => x,
-        };
-        let obj: Value = obj.or(Err("Invalid GELF input, unable to parse as a JSON object"))?;
+        ).or(Err("Invalid GELF input, unable to parse as a JSON object"))?;
         let obj = obj.as_object().ok_or("Empty GELF input")?;
         for (key, value) in obj {
             match key.as_ref() {
@@ -76,9 +75,16 @@ impl Decoder for GelfDecoder {
                     let sd_value: SDValue = match *value {
                         Value::String(ref value) => SDValue::String(value.to_owned()),
                         Value::Bool(value) => SDValue::Bool(value),
-                        Value::F64(value) => SDValue::F64(value),
-                        Value::I64(value) => SDValue::I64(value),
-                        Value::U64(value) => SDValue::U64(value),
+                        Value::Number(value) => {
+                            if let Some(f) = value.as_f64() {
+                                SDValue::F64(f)
+                            } else if let Some(i) = value.as_i64() {
+                                SDValue::I64(i)
+
+                            } else {
+                                SDValue::U64(value.as_u64().unwrap())
+                            }
+                        },
                         Value::Null => SDValue::Null,
                         _ => return Err("Invalid value type in structured data"),
                     };

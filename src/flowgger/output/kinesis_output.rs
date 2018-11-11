@@ -2,6 +2,8 @@ use super::Output;
 use crate::flowgger::config::Config;
 use crate::flowgger::merger::Merger;
 
+use mdo::result::{bind, ret};
+
 use std::io::{stderr, Write};
 use std::process::exit;
 use std::sync::mpsc::Receiver;
@@ -58,7 +60,7 @@ impl  KinesisWorker {
                 lock =<< self.arx.lock();
                 bytes =<< lock.recv();
                 ret ret(bytes)
-            };
+            }.unwrap();
             self.queue.push(b);
         }
     }
