@@ -3,6 +3,7 @@ extern crate chrono;
 extern crate clap;
 #[cfg(feature = "coroutines")]
 extern crate coio;
+#[macro_use] extern crate failure;
 extern crate flate2;
 #[cfg(feature = "kafka")]
 extern crate kafka;

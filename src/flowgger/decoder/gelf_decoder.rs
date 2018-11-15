@@ -3,8 +3,6 @@ use crate::flowgger::config::Config;
 use crate::flowgger::record::{Record, SDValue, StructuredData, SEVERITY_MAX};
 use crate::flowgger::utils;
 use serde_json::de;
-use serde_json::error::Error;
-use serde_json::error::ErrorCode;
 use serde_json::value::Value;
 
 #[derive(Clone)]
@@ -72,9 +70,9 @@ impl Decoder for GelfDecoder {
                     severity = Some(severity_given as u8)
                 }
                 name => {
-                    let sd_value: SDValue = match *value {
+                    let sd_value: SDValue = match value {
                         Value::String(ref value) => SDValue::String(value.to_owned()),
-                        Value::Bool(value) => SDValue::Bool(value),
+                        Value::Bool(value) => SDValue::Bool(*value),
                         Value::Number(value) => {
                             if let Some(f) = value.as_f64() {
                                 SDValue::F64(f)
